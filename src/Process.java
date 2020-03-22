@@ -2,18 +2,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+
 public class Process implements Runnable {
 
     ArrayList<File> list;
-    File unzipper;
-    File converter;
+    String cmd;
     int processorNumber;
     int size;
 
-    Process(int processorNumber, ArrayList<File> list, File unzipper, File converter) {
+    Process(int processorNumber, ArrayList<File> list, String cmd) {
         this.list = list;
-        this.unzipper = unzipper;
-        this.converter = converter;
+        this.cmd = cmd;
         this.processorNumber = processorNumber;
         size = list.size();
     }
@@ -26,7 +25,7 @@ public class Process implements Runnable {
                 list.remove(0);
             }
             try {
-                unzipAndConvert(file, unzipper, converter);
+                convert(file, cmd);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -35,30 +34,31 @@ public class Process implements Runnable {
         }
     }
 
-    public void unzipAndConvert(File zip, File unzip, File convert) throws InterruptedException, IOException {
-        if (new File(zip.toString().substring(0, zip.toString().length() - 4)).exists()) {
-            new File(zip.toString().substring(0, zip.toString().length() - 4)).delete();
-        }
-        String cmd = getFormattedPath(unzip) + " e -o" + getFormattedPath(zip.getParentFile()) + " " + getFormattedPath(zip);
+    public void convert(File file, String cmd) throws InterruptedException, IOException {
+        MagicConverter.field1.setText(file.getName());
+        String finalExt = cmd.substring(cmd.lastIndexOf("."), cmd.length() - 1);
+//        if (cmd.substring(cmd.indexOf("~") + 1, cmd.indexOf("\"", cmd.indexOf("~"))).equals("")) {
+//            cmd = cmd.replaceFirst("~",file.getAbsolutePath())
+//            cmd = cmd.replace("~", extensionRemoove(file.getAbsolutePath()));
+//        }
+        cmd = cmd.replace("~", extensionRemoove(file.getAbsolutePath()));
         Runtime r = Runtime.getRuntime();
         java.lang.Process p = r.exec(cmd);
         p.waitFor();
-        File fb2 = new File(zip.toString().substring(0, zip.toString().length() - 4));
-        String cmd2 = getFormattedPath(convert) + " \"" + zip.toString().substring(0, zip.toString().length() - 4) + "\" \""
-                + zip.toString().substring(0, zip.toString().length() - 8) + ".epub" + "\"";
-        p = r.exec(cmd2);
-        p.waitFor();
-        fb2.delete();
-        zip.delete();
-        MagicConverter.field1.setText(fb2.getName());
-        MagicConverter.field2.setText(String.valueOf(100 * (size - list.size()) / size) + "%");
-        //System.out.println("CPU_" + processorNumber + "  " + zip.toString().substring(0, zip.toString().length() - 8) + ".epub");
+        if (new File(extensionRemoove(file.getAbsolutePath()) + finalExt).exists()) {
+            file.delete();
+        }
+        MagicConverter.field2.setText("    " + String.valueOf(100 * (size - list.size()) / size) + "%");
     }
 
-    private String getFormattedPath(File file) {
-        return "\"" + file.getPath() + "\"";
+    public String extensionRemoove(String fileNameWithExt) {
+        String fileNameWithOutExt = fileNameWithExt.substring(0,fileNameWithExt.lastIndexOf('.'));
+        return fileNameWithOutExt;
     }
-    //Сделать прогу для конвертации всего вообще. Паттерн такой - берется вся команда пишется в строке, вместо имен файлов
-    //пишется
+
+//    public String extension(String fileNameWithExt){
+//        String extension = FilenameUtils.getExtension(fileNameWithExt);
+//        return extension;
+//    }
 
 }

@@ -4,12 +4,12 @@ import java.util.ArrayList;
 
 public class FileFinder {
 
-    public void search(File topDirectory, ArrayList<File> res) throws IOException {
+    public void search(File topDirectory, ArrayList<File> res, String extension) throws IOException {
         File[] list = topDirectory.listFiles();
         for (int i = 0; i < list.length; i++) {
             if (list[i].isDirectory()) {
-                search(list[i], res);
-            } else if (list[i].getName().contains(".zip")) {
+                search(list[i], res, extension);
+            } else if (list[i].getName().endsWith(extension)) {
                 res.add(list[i]);
             }
         }

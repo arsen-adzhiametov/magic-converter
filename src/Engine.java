@@ -15,18 +15,29 @@ public class Engine implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-        File unzipper = new File(parent.fieldA.getText());
-        File converter = new File(parent.fieldB.getText());
-        File topDir = new File(parent.fieldC.getText());
+
+        parent.run.setEnabled(false);
+        parent.dirChooser.setEnabled(false);
+        parent.fieldCMD.setEditable(false);
+        parent.fieldDIR.setEditable(false);
+
+        String cmd = parent.fieldCMD.getText().replace("/", "//");
+        File topDir = new File(parent.fieldDIR.getText());
         FileFinder fileFinder = new FileFinder();
         try {
-            fileFinder.search(topDir, list);
-            parent.progressBar.setIndeterminate(true);
+            fileFinder.search(topDir, list, extensionToConvert(cmd));
         } catch (IOException e1) {
             e1.printStackTrace();
         }
         for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
-            new Thread(new Process(i, list, unzipper, converter)).start();
+            Thread thread = new Thread(new Process(i, list, cmd));
+            thread.setDaemon(true);
+            thread.start();
         }
+    }
+
+    public static String extensionToConvert(String cmd){
+        String extensionToConvert = cmd.substring(cmd.indexOf("~")+1, cmd.indexOf("\"",cmd.indexOf("~")));
+        return extensionToConvert;
     }
 }
